@@ -4,7 +4,12 @@ from todo import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.home, name='home'),
+    path('', views.register_user, name='register_user'),
+    #  path('login/', views.login_user, name='login_user'),
+    # path('logout/', views.logout_user, name='logout_user'),
+    path('todo/', views.home, name='home'),
     path('delete/<int:task_id>/', views.delete_task, name='delete_task'),
     path('toggle/<int:task_id>/', views.toggle_task, name='toggle_task'),
 ]
+
+   

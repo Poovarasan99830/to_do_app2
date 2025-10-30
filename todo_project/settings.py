@@ -83,3 +83,21 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'todo' / 'static']
 # Enable GZip and caching via WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'kingpoovarasan49@gmail.com'  # Replace this
+EMAIL_HOST_PASSWORD = 'tpmnbntzarrdwyxd'  # App password
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+
+
+LOGIN_URL = 'login_user'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'login_user'
