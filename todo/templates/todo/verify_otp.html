@@ -1,0 +1,10 @@
+<h2>Verify OTP</h2>
+<form method="post">
+  {% csrf_token %}
+ 
+  <label>Enter OTP:</label>
+   <input type="email" name="email" placeholder="Email">
+  <input type="text" name="otp" maxlength="6" required>
+  <button type="submit">Verify</button>
+</form>
+<p style="color:red;">{{ message }}</p>
