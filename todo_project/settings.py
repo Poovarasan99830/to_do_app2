@@ -143,7 +143,31 @@ LOGOUT_REDIRECT_URL = 'login_user'
 # EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 # EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
 # DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL")
-EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "sendgrid_backend.SendgridBackend")
+
+
+# EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "sendgrid_backend.SendgridBackend")
+# SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+# SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+# DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "kingpoovarasan49@gmail.com")
+
+
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+
+# Core settings
+SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey")
+DEBUG = os.environ.get("DEBUG", "False") == "True"
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1").split(",")
+
+# SendGrid Email
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
+if not SENDGRID_API_KEY:
+    raise Exception("SENDGRID_API_KEY is missing in environment variables!")
+
+EMAIL_BACKEND = "sendgrid_backend.SendgridBackend"
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "kingpoovarasan49@gmail.com")

@@ -63,11 +63,136 @@ def toggle_task(request, task_id):
 
 #     return render(request, "todo/register.html")
 # views.py
+# import random
+# from django.core.mail import send_mail
+# from django.contrib.auth.models import User
+# from django.shortcuts import render, redirect
+# from .models import UserOTP
+
+# def register_user(request):
+#     if request.method == "POST":
+#         username = request.POST.get("username")
+#         email = request.POST.get("email")
+#         password = request.POST.get("password")
+
+#         if User.objects.filter(username=username).exists():
+#             return render(request, "todo/register.html", {"message": "⚠️ Username already exists!"})
+
+#         user = User.objects.create_user(username=username, email=email, password=password)
+#         otp = str(random.randint(100000, 999999))
+#         UserOTP.objects.create(user=user, otp=otp)
+
+#         # ✅ Send OTP to email
+#         send_mail(
+#             "Your Smart AI Civic Portal OTP",
+#             f"Hi {username},\n\nYour OTP is {otp}. It will expire in 5 minutes.\n\nThank you!",
+#             "kingpoovarasan49@gmail.com",
+#             [email],
+#             fail_silently=False,
+#         )
+
+#         return redirect("verify_otp")
+
+#     return render(request, "todo/register.html")
+
+
+# # from django.contrib.auth import login
+# # from django.contrib.auth.models import User
+
+# # def verify_otp(request):
+# #     if request.method == "POST":
+# #         email = request.POST.get("email")
+# #         otp_entered = request.POST.get("otp")
+
+# #         user = User.objects.get(email=email)
+# #         user_otp = UserOTP.objects.get(user=user)
+
+# #         if user_otp.is_expired():
+# #             user_otp.delete()
+# #             return render(request, "todo/verify_otp.html", {"message": "❌ OTP expired! Please register again.", "email": email})
+
+# #         if user_otp.otp == otp_entered:
+# #             login(request, user)
+# #             user_otp.delete()
+# #             return redirect("home")
+# #         else:
+# #             return render(request, "todo/verify_otp.html", {"message": "❌ Invalid OTP!", "email": email})
+
+# #     return render(request, "todo/verify_otp.html")
+
+
+
+# from django.contrib.auth import login
+# from django.contrib.auth.models import User
+# from .models import UserOTP
+
+# def verify_otp(request):
+#     if request.method == "POST":
+#         email = request.POST.get("email")
+#         otp_entered = request.POST.get("otp")
+
+#         # ✅ Fetch multiple users safely
+#         users = User.objects.filter(email=email).order_by("-id")
+#         if not users.exists():
+#             return render(request, "todo/verify_otp.html", {
+#                 "message": "❌ No user found with this email.",
+#                 "email": email
+#             })
+
+#         user = users.first()  # pick the most recent user
+
+#         try:
+#             user_otp = UserOTP.objects.get(user=user)
+#         except UserOTP.DoesNotExist:
+#             return render(request, "todo/verify_otp.html", {
+#                 "message": "❌ OTP not found for this user.",
+#                 "email": email
+#             })
+
+#         # ✅ Expiry check
+#         if user_otp.is_expired():
+#             user_otp.delete()
+#             return render(request, "todo/verify_otp.html", {
+#                 "message": "⏰ OTP expired! Please register again.",
+#                 "email": email
+#             })
+
+#         # ✅ OTP match check
+#         if user_otp.otp == otp_entered:
+#             login(request, user)
+#             user_otp.delete()
+#             return redirect("home")
+#         else:
+#             return render(request, "todo/verify_otp.html", {
+#                 "message": "❌ Invalid OTP! Please try again.",
+#                 "email": email
+#             })
+
+#     return render(request, "todo/verify_otp.html")
+
+
+
+
 import random
-from django.core.mail import send_mail
-from django.contrib.auth.models import User
+import threading
 from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib.auth import login
+from django.core.mail import send_mail
 from .models import UserOTP
+from django.conf import settings
+
+def send_async_email(subject, message, recipient_list):
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            recipient_list,
+            fail_silently=False
+        )
+    except Exception as e:
+        print("Email sending failed:", e)
 
 def register_user(request):
     if request.method == "POST":
@@ -76,96 +201,49 @@ def register_user(request):
         password = request.POST.get("password")
 
         if User.objects.filter(username=username).exists():
-            return render(request, "todo/register.html", {"message": "⚠️ Username already exists!"})
+            return render(request, "register.html", {"message": "⚠️ Username already exists!"})
 
         user = User.objects.create_user(username=username, email=email, password=password)
         otp = str(random.randint(100000, 999999))
         UserOTP.objects.create(user=user, otp=otp)
 
-        # ✅ Send OTP to email
-        send_mail(
-            "Your Smart AI Civic Portal OTP",
-            f"Hi {username},\n\nYour OTP is {otp}. It will expire in 5 minutes.\n\nThank you!",
-            "kingpoovarasan49@gmail.com",
-            [email],
-            fail_silently=False,
-        )
+        threading.Thread(
+            target=send_async_email,
+            args=("Your Smart AI Civic Portal OTP",
+                  f"Hi {username},\n\nYour OTP is {otp}. It will expire in 5 minutes.\n\nThank you!",
+                  [email])
+        ).start()
 
         return redirect("verify_otp")
 
-    return render(request, "todo/register.html")
+    return render(request, "register.html")
 
-
-# from django.contrib.auth import login
-# from django.contrib.auth.models import User
-
-# def verify_otp(request):
-#     if request.method == "POST":
-#         email = request.POST.get("email")
-#         otp_entered = request.POST.get("otp")
-
-#         user = User.objects.get(email=email)
-#         user_otp = UserOTP.objects.get(user=user)
-
-#         if user_otp.is_expired():
-#             user_otp.delete()
-#             return render(request, "todo/verify_otp.html", {"message": "❌ OTP expired! Please register again.", "email": email})
-
-#         if user_otp.otp == otp_entered:
-#             login(request, user)
-#             user_otp.delete()
-#             return redirect("home")
-#         else:
-#             return render(request, "todo/verify_otp.html", {"message": "❌ Invalid OTP!", "email": email})
-
-#     return render(request, "todo/verify_otp.html")
-
-
-
-from django.contrib.auth import login
-from django.contrib.auth.models import User
-from .models import UserOTP
 
 def verify_otp(request):
     if request.method == "POST":
         email = request.POST.get("email")
         otp_entered = request.POST.get("otp")
 
-        # ✅ Fetch multiple users safely
         users = User.objects.filter(email=email).order_by("-id")
         if not users.exists():
-            return render(request, "todo/verify_otp.html", {
-                "message": "❌ No user found with this email.",
-                "email": email
-            })
+            return render(request, "verify_otp.html", {"message": "❌ No user found with this email.", "email": email})
 
-        user = users.first()  # pick the most recent user
+        user = users.first()
 
         try:
             user_otp = UserOTP.objects.get(user=user)
         except UserOTP.DoesNotExist:
-            return render(request, "todo/verify_otp.html", {
-                "message": "❌ OTP not found for this user.",
-                "email": email
-            })
+            return render(request, "verify_otp.html", {"message": "❌ OTP not found.", "email": email})
 
-        # ✅ Expiry check
         if user_otp.is_expired():
             user_otp.delete()
-            return render(request, "todo/verify_otp.html", {
-                "message": "⏰ OTP expired! Please register again.",
-                "email": email
-            })
+            return render(request, "verify_otp.html", {"message": "⏰ OTP expired!", "email": email})
 
-        # ✅ OTP match check
         if user_otp.otp == otp_entered:
             login(request, user)
             user_otp.delete()
             return redirect("home")
         else:
-            return render(request, "todo/verify_otp.html", {
-                "message": "❌ Invalid OTP! Please try again.",
-                "email": email
-            })
+            return render(request, "verify_otp.html", {"message": "❌ Invalid OTP!", "email": email})
 
-    return render(request, "todo/verify_otp.html")
+    return render(request, "verify_otp.html")
