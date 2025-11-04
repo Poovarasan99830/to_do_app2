@@ -161,7 +161,8 @@ load_dotenv(BASE_DIR / ".env")
 # Core settings
 SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey")
 DEBUG = os.environ.get("DEBUG", "False") == "True"
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1").split(",")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+
 
 # SendGrid Email
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
